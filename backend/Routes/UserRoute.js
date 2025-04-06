@@ -1,6 +1,7 @@
 const express = require("express");
 const { registerUser } = require("../Controller/UserController");
-const {deleteUser} = require('../Controller/UserController')
+const {deleteUser} = require('../Controller/UserController');
+const {loginUser} = require('../Controller/UserController')
 const upload = require('../middleware/upload');
 const router = express.Router();
 
@@ -8,6 +9,6 @@ const router = express.Router();
 // router.post('/register', upload.single('image'), registerUser);
 router.post("/register", upload.single("ImageUrl"), registerUser);
 router.delete('/deleteUser/:id', deleteUser);
-
+router.post("/login", loginUser);
 
 module.exports = router;

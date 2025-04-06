@@ -5,6 +5,7 @@ const { sendOtpEmail } = require('../Services/Mailer');
 const cloudinary = require('../config/cloudinaryConfig'); 
 const upload = require('../middleware/upload');
 const moment = require("moment");
+const jwt = require('jsonwebtoken');
 
 // const registerUser = async (req, res) => {
 //     try {
@@ -163,7 +164,54 @@ const registerUser = async (req, res) => {
     }
 };
 
+const loginUser = async (req, res) => {
+    try {
+        const { Email, Password } = req.body;
+
+        // Kiểm tra email và password có được cung cấp không
+        if (!Email || !Password) {
+            return res.status(400).json({ error: "Email và mật khẩu là bắt buộc!" });
+        }
+
+        // Tìm người dùng theo email
+        const user = await User.findOne({ Email });
+        if (!user) {
+            return res.status(400).json({ error: "Email không tồn tại!" });
+        }
+
+        // Kiểm tra đã xác thực email chưa
+        if (!user.isVerify) {
+            return res.status(401).json({ error: "Tài khoản chưa được xác thực! Vui lòng kiểm tra email để xác thực." });
+        }
+
+        // So sánh mật khẩu đã mã hoá
+        const isMatch = await bcrypt.compare(Password, user.Password);
+        if (!isMatch) {
+            return res.status(401).json({ error: "Mật khẩu không đúng!" });
+        }
+
+        // Tạo access token và refresh token
+        const payload = { userId: user._id, email: user.Email };
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
+        const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+        return res.status(200).json({
+            message: "Đăng nhập thành công!",
+            accessToken,
+            refreshToken,
+            user: {
+                id: user._id,
+                name: user.Name,
+                email: user.Email,
+                phoneNumber: user.PhoneNumber,
+                imageUrl: user.ImageUrl,
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
+    }
+};
 
 
-
-module.exports = { registerUser, deleteUser };
+module.exports = { registerUser, deleteUser, loginUser };

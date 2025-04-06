@@ -7,6 +7,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import moment from 'moment-timezone';
 import axios from 'axios';
 import * as ImagePicker from "expo-image-picker";
+import { API_URL } from '../../../config';
 import FormData from 'form-data';
 export default function SignOut() {
     const [Name, setName] = useState('');
@@ -93,7 +94,7 @@ export default function SignOut() {
                 });
             }        
     
-            const response = await axios.post('http://192.168.1.10:9000/User/register', formData, {
+            const response = await axios.post(`${API_URL}/User/register`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             if (response.data) {

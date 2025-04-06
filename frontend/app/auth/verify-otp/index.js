@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 import { API_URL } from '../../../config';
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 // Cập nhật tên biến môi trường
 // const API_URL = process.env.API_BASE_URL;
 
-const OtpVerification = ({ navigation }) => {
+const OtpVerification = () => {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+   const navigation= useNavigation();
   // const handleOtpSubmit = async () => {
   //   setLoading(true);
 
@@ -40,7 +40,11 @@ const OtpVerification = ({ navigation }) => {
   //     Alert.alert("Lỗi", errorMessage);
   //   }
   // };
-
+ useEffect(()=>{
+         navigation.setOptions({
+             headerShown: false,
+         })
+     },[])
   const handleOtpSubmit = async () => {
     setLoading(true);
     try {

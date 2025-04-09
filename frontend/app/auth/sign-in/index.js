@@ -141,11 +141,13 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Colors } from '../../../constants/Colors';
 import { API_URL } from '../../../config';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const router = useRouter();
   const navigation= useNavigation();
 
@@ -158,15 +160,15 @@ export default function SignIn() {
       });
 
       const { accessToken, refreshToken, message } = response.data;
-
+      
       // Lưu token vào SecureStore
       await SecureStore.setItemAsync('accessToken', accessToken);
       await SecureStore.setItemAsync('refreshToken', refreshToken);
-
+      
       Alert.alert('Đăng nhập thành công!', message);
 
       // Điều hướng đến trang chính
-      router.push('/auth/signin-signout'); // Ví dụ
+      router.push('/auth/screens/HomeScreen'); 
     } catch (error) {
       const errMsg = error.response?.data?.error || 'Đã có lỗi xảy ra!';
       Alert.alert('Lỗi', errMsg);
@@ -205,14 +207,23 @@ export default function SignIn() {
 
         {/* Password */}
         <Text style={{ fontFamily: 'outfit' }}>Mật khẩu</Text>
+        <View style={styles.passwordContainer}>
         <TextInput
-          style={styles.input}
-          secureTextEntry={true}
+          style={styles.passwordInput}  
+          secureTextEntry={!isPasswordVisible}
           placeholder="Nhập mật khẩu"
           placeholderTextColor="black"
           value={password}
           onChangeText={setPassword}
         />
+        <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+          <Ionicons
+            name={isPasswordVisible ? 'eye-off' : 'eye'}
+            size={22}
+            color="gray"
+          />
+        </TouchableOpacity>
+        </View>
 
         {/* Ghi nhớ tài khoản */}
         <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
@@ -248,7 +259,7 @@ export default function SignIn() {
 
       {/* Đăng kí */}
       <TouchableOpacity
-        onPress={() => router.push('auth/sign-up')}
+        onPress={() => router.push('auth/sign-out')}
         style={{
           padding: 20,
           backgroundColor: Colors.PRIMARY,
@@ -271,4 +282,18 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit',
     marginTop: 5,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 15,
+    borderColor: Colors.GRAY,
+    paddingHorizontal: 10,
+    marginTop: 5,
+  },
+  passwordInput: {
+  flex: 1,
+  height: 50,
+  fontFamily: 'outfit',
+},
 });

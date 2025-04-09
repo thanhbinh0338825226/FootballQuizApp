@@ -28,7 +28,7 @@ export default function Login() {
           }}>Football Quiz App</Text>
           <Text style={{
               fontFamily: 'outfit',
-              fontSize: 16,
+              fontSize: 18,
               textAlign: 'center',
               color: Colors.GRAY,
               marginTop: 20

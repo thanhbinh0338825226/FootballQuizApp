@@ -9,12 +9,14 @@ import axios from 'axios';
 import * as ImagePicker from "expo-image-picker";
 import { API_URL } from '../../../config';
 import FormData from 'form-data';
+import { Ionicons } from '@expo/vector-icons';
 export default function SignOut() {
     const [Name, setName] = useState('');
     const [PhoneNumber, setPhoneNumber] = useState('');
     const [Email, setEmail] = useState('');
     const [Password, setPassword] = useState('');
     const [ConfirmPassword, setConfirmPassword] = useState('');
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [ImageUrl, setImageUrl] = useState(null);
     const [birthDate, setBirthDate] = useState("Nhập ngày tháng năm sinh");
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -233,27 +235,50 @@ export default function SignOut() {
             <Text style={{
                 fontFamily: 'outfit'
             }}>Mật khẩu</Text>
-            <TextInput style={styles.input}
-                secureTextEntry= {true}
+            <View style={styles.passwordContainer}>
+            <TextInput 
+                // style={styles.input}
+                style={styles.passwordInput}
+                // secureTextEntry= {true}
+                secureTextEntry={!isPasswordVisible}
                 placeholder='Nhập mật khẩu'
                 placeholderTextColor="black"
                 value={Password}
                 onChangeText={(text) => setPassword(text)}
                 >
             </TextInput>
-
+            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                <Ionicons
+                name={isPasswordVisible ? 'eye-off' : 'eye'}
+                size={22}
+                color="gray"
+                />
+            </TouchableOpacity>
+            </View>
             {/* Nhập lại mật khẩu */}
             <Text style={{
                 fontFamily: 'outfit'
             }}>Xác nhận mật khẩu</Text>
-            <TextInput style={styles.input}
-                secureTextEntry= {true}
+            <View style={styles.passwordContainer}>
+            <TextInput 
+                // style={styles.input}
+                style={styles.passwordInput}
+                // secureTextEntry= {true}
+                secureTextEntry={!isPasswordVisible}
                 placeholder='Xác nhận mật khẩu'
                 placeholderTextColor="black"
                 value={ConfirmPassword}
                 onChangeText={(text) => setConfirmPassword(text)}
                 >
             </TextInput>
+            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                <Ionicons
+                name={isPasswordVisible ? 'eye-off' : 'eye'}
+                size={22}
+                color="gray"
+                />
+            </TouchableOpacity>
+            </View>
             <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
                 <Text>Chọn ảnh đại diện</Text>
             </TouchableOpacity>
@@ -301,6 +326,21 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignSelf: 'center',
     marginTop: 10 
+},
+passwordContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderRadius: 15,
+  borderColor: Colors.GRAY,
+  paddingHorizontal: 10,
+  marginTop: 5,
+},
+
+passwordInput: {
+  flex: 1,
+  height: 50,
+  fontFamily: 'outfit',
 },
     
 })

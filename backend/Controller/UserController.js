@@ -213,5 +213,29 @@ const loginUser = async (req, res) => {
     }
 };
 
+// Ví dụ trong Node.js/Express
+const getUserById = async (req, res) => {
+    const userId = req.params.id; // Nhận _id từ URL params
+    try {
+        // Tìm người dùng theo _id (MongoDB sử dụng _id mặc định)
+        const user = await User.findById(userId); 
+        if (!user) {
+            console.log('User not found'); // In thông báo nếu không tìm thấy người dùng
+            return res.status(404).json({ error: 'User not found' });
+        }
+        // Trả về thông tin người dùng
+        return res.status(200).json({
+            imageUrl: user.ImageUrl, // Trả về URL của hình ảnh
+        });
+    } catch (error) {
+       
+        return res.status(500).json({ error: error.message }); // Trả về lỗi cho client
+    }
+};
 
-module.exports = { registerUser, deleteUser, loginUser };
+
+
+
+  
+
+module.exports = { registerUser, deleteUser, loginUser,  getUserById};

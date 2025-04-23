@@ -31,7 +31,7 @@ export default function HardGameIntro() {
         <View style={styles.infoBox}>
             <Text style={styles.infoItem}>📊 Độ khó: Khó</Text>
             <Text style={styles.infoItem}>⏱️ Thời gian: 3 phút</Text>
-            <Text style={styles.infoItem}>🏆 Điểm tối đa: 100</Text>
+            <Text style={styles.infoItem}>🏆 Điểm tối đa: 10</Text>
         </View>
 
         <TouchableOpacity style={styles.startBtn}

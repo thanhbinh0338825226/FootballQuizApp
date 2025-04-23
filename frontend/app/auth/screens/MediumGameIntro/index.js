@@ -18,7 +18,7 @@ export default function MediumGameIntro() {
         end={{ x: 1, y: 1 }}
         style={styles.container}
     >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.push('/auth/screens/HomeScreen')} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={24} color="black" />
         </TouchableOpacity>
 
@@ -31,7 +31,7 @@ export default function MediumGameIntro() {
         <View style={styles.infoBox}>
             <Text style={styles.infoItem}>📊 Độ khó: Trung bình</Text>
             <Text style={styles.infoItem}>⏱️ Thời gian: 3 phút</Text>
-            <Text style={styles.infoItem}>🏆 Điểm tối đa: 100</Text>
+            <Text style={styles.infoItem}>🏆 Điểm tối đa: 10</Text>
         </View>
 
         <TouchableOpacity style={styles.startBtn}

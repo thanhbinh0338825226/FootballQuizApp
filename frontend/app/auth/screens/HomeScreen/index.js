@@ -1,4 +1,4 @@
-import { View, Text , Image, FlatList, StyleSheet, TouchableOpacity, Dimensions, ScrollView, Touchable} from 'react-native'
+import { View, Text , Image, FlatList, StyleSheet, TouchableOpacity, Dimensions, ScrollView} from 'react-native'
 import React, { useRef, useEffect, useState } from 'react'
 import { useNavigation, useRouter } from 'expo-router'
 import * as SecureStore from 'expo-secure-store';
@@ -6,7 +6,6 @@ import { Colors } from '../../../../constants/Colors';
 import axios from 'axios';
 import { API_URL } from '../../../../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
-
 import TabBar from '../TabBar';
 const { width } = Dimensions.get("window");
   const images = [
@@ -20,6 +19,9 @@ export default function HomeScreen() {
   // const flatListRef = useRef<FlatList>(null);
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [difficulty, setDifficulty] = useState('easy'); // Mặc định là 'easy'
+  const [leaderboardData, setLeaderboardData] = useState([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,6 +57,43 @@ export default function HomeScreen() {
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const decodedData = JSON.parse(atob(base64));
     return decodedData;
+  };
+
+  const getTop3Leaderboard = (leaderboardData) => {
+    // Sắp xếp theo điểm cao nhất và thời gian nhanh nhất (ưu tiên điểm số)
+    const sortedData = leaderboardData
+      .sort((a, b) => {
+        // Sắp xếp theo điểm số trước, nếu điểm bằng nhau thì sắp xếp theo thời gian
+        if (b.highestScore === a.highestScore) {
+          return a.fastestTime - b.fastestTime;
+        }
+        return b.highestScore - a.highestScore;
+      })
+      .slice(0, 3); // Lấy 3 người đầu tiên
+  
+    return sortedData;
+  };
+   // Gọi API để lấy leaderboard dựa trên độ khó
+   const getLeaderboard = async (difficulty) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/leaderboard?difficulty=${difficulty}`);
+      // setLeaderboardData(response.data.data);
+      const leaderboardData = response.data.data;
+      // Lấy 3 người đầu tiên (dựa trên điểm số và thời gian)
+      const top3Data = getTop3Leaderboard(leaderboardData);
+      setLeaderboardData(top3Data);  // Cập nhật state với 3 người đầu tiên
+    } catch (error) {
+      console.error('Lỗi khi lấy leaderboard:', error);
+    }
+  };
+
+  // Gọi API khi màn hình được render hoặc khi độ khó thay đổi
+  useEffect(() => {
+    getLeaderboard(difficulty); // Mặc định gọi leaderboard với 'easy'
+  }, [difficulty]); // Khi độ khó thay đổi sẽ gọi lại API
+
+  const changeDifficulty = (newDifficulty) => {
+    setDifficulty(newDifficulty);
   };
   useEffect(() => {
     const getUserInfo = async () => {
@@ -93,6 +132,19 @@ export default function HomeScreen() {
       headerShown: false,
     })
   },[])
+
+  const formatTime = (timeInMilliseconds) => {
+    const seconds = Math.floor(timeInMilliseconds / 1000); // Lấy số giây
+    const minutes = Math.floor(seconds / 60); // Tính số phút
+    const remainingSeconds = seconds % 60; // Lấy số giây còn lại
+  
+    if (minutes > 0) {
+      return `${minutes} phút ${remainingSeconds} giây`; // Nếu có phút, hiển thị "phút giây"
+    } else {
+      return `${remainingSeconds} giây`; // Nếu không có phút, chỉ hiển thị "giây"
+    }
+  };
+
   return (
     <View style={styles.containerWithTabs}>
     <ScrollView style={styles.container}>
@@ -149,7 +201,10 @@ export default function HomeScreen() {
         {/* Khám phá , Xem tất cả */}
        <View style={{marginTop: 20, paddingLeft: 10, display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
           <Text style={{fontSize: 24, fontFamily: 'outfit-bold'}}>Khám phá</Text>
-          <TouchableOpacity style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 5}}>
+          <TouchableOpacity 
+            style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 5}}
+            onPress={() => router.push('/auth/screens/LibraryScreen')}
+          >
           <Text style={{fontSize: 24, fontFamily: 'outfit-bold', color: 'purple'}}>Xem tất cả</Text>
           <AntDesign name="arrowright" size={24} color="purple" style={{paddingTop: 5}} />
           </TouchableOpacity>
@@ -191,7 +246,7 @@ export default function HomeScreen() {
           />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.questionTitle}>20 câu hỏi</Text>
+          <Text style={styles.questionTitle}>10 câu hỏi</Text>
           <Text style={styles.questionSubtitle}>Không dành cho người thiếu kiên nhẫn</Text>
         </View>
         </TouchableOpacity>
@@ -207,13 +262,67 @@ export default function HomeScreen() {
           />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.questionTitle}>30 câu hỏi</Text>
+          <Text style={styles.questionTitle}>10 câu hỏi</Text>
           <Text style={styles.questionSubtitle}>Vượt khó, chứng minh bản lĩnh trí tuệ</Text>
         </View>
        </TouchableOpacity>
        </ScrollView>
        </View>
 
+         {/* Bảng xếp hạng và các tab độ khó */}
+         <View style={{ marginTop: 20, paddingLeft: 10, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 24, fontFamily: 'outfit-bold' }}>Bảng xếp hạng</Text>
+          <TouchableOpacity
+            style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', gap: 5 }}
+            onPress={() => router.push('/auth/screens/FriendScreen')}
+          >
+            <Text style={{ fontSize: 24, fontFamily: 'outfit-bold', color: 'purple' }}>Xem tất cả</Text>
+            <AntDesign name="arrowright" size={24} color="purple" style={{ paddingTop: 5 }} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Các tab độ khó */}
+        <View style={{ marginTop: 20, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+          {['easy', 'medium', 'hard'].map((level) => (
+            <TouchableOpacity
+              key={level}
+              style={[
+                styles.difficultyTab,
+                difficulty === level && styles.selectedDifficultyTab,
+              ]}
+              onPress={() => changeDifficulty(level)}
+            >
+              <Text style={[styles.difficultyText, difficulty === level && styles.selectedDifficultyText]}>
+                {level === 'easy' ? 'Dễ' : level === 'medium' ? 'Trung bình' : 'Khó'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <ScrollView horizontal={true} style={{ width: "100%" }}>
+        
+        {/* Hiển thị bảng xếp hạng */}
+        <FlatList
+          data={leaderboardData}
+          renderItem={({ item , index }) => (
+            <View style={styles.leaderboardItem}>
+              <View style={styles.infoContainer}>
+              <Text style={styles.rankText}>
+                {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`}
+              </Text>
+                <Text style={styles.nameText}> {item.userInfo?.Email?.split('@')[0]|| 'Anonymous'}</Text>
+                <Text style={styles.scoreText}>{item.highestScore?.toString() || '0'} điểm</Text>
+                {/* <Text style={styles.timeText}>{formatTime(item.fastestTime)}</Text> */}
+                <Text style={styles.timeText}>
+                  {item.fastestTime ? formatTime(item.fastestTime) : '--:--'}
+                </Text>
+              </View>
+            </View>
+          )}
+          keyExtractor={(item) => item._id}
+         
+        />
+        </ScrollView>
+      
     </ScrollView>
       <TabBar />
     </View>
@@ -283,10 +392,83 @@ const styles = StyleSheet.create({
   textAlign: 'center',
   },
 
-questionSubtitle: {
+  questionSubtitle: {
   fontSize: 14,
   color: 'black',
   textAlign: 'center',
   marginTop: 4,
 },
+  difficultyTab: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#ddd',
+  },
+  selectedDifficultyTab: {
+    backgroundColor: '#6200ea',
+  },
+  difficultyText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  selectedDifficultyText: {
+    color: '#fff',
+  },
+  leaderboardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginVertical: 4,
+    paddingHorizontal: 12,
+    elevation: 1, // shadow trên Android
+    shadowColor: '#000', // shadow trên iOS
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
+  },
+  rankText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#6200ea',
+    width: 24,
+    textAlign: 'center',
+    marginRight: 8,
+  },
+  
+  infoContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  nameText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    flex: 1,
+    marginRight: 8,
+  },
+  scoreTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scoreText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ff6d00',
+    width: 80,
+    textAlign: 'right',
+    marginRight: 16,
+  },
+  timeText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#009688',
+    width: 100,
+    textAlign: 'right',
+  },
 });

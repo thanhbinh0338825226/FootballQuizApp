@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
 import { Ionicons, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
@@ -13,47 +12,29 @@ const TabBar = () => {
     
     <View style={styles.tabContainer}>
       <TouchableOpacity onPress={() => router.push('/auth/screens/HomeScreen')}>
+      <View style={styles.iconContainer}>
         <FontAwesome name="home" size={30} color={Colors.PRIMARY}/>
+      </View>
         <Text style={styles.tabLabel}>Trang chủ</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/auth/screens/LibraryScreen')}>
+      <View style={styles.iconContainer}>
         <Ionicons name="library" size={30} color={Colors.PRIMARY} />
+      </View>
         <Text style={styles.tabLabel}>Thư viện</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/auth/screens/FriendScreen')}>
-        <Ionicons name="person-add" size={30} ccolor={Colors.PRIMARY} />
-        <Text style={styles.tabLabel}>Tìm bạn</Text>
+      <View style={styles.iconContainer}>
+        <FontAwesome6 name="ranking-star" size={24} color={Colors.PRIMARY} />
+      </View>
+        <Text style={styles.tabLabel}>Bảng xếp hạng</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push('/auth/screens/ProfileScreen')}>
+      <View style={styles.iconContainer}>
         <FontAwesome6 name="person" size={30} color={Colors.PRIMARY} />
+      </View>
         <Text style={styles.tabLabel}>Hồ sơ</Text>
       </TouchableOpacity>
-      {/* <View style={styles.tabContainer}>
-        <TouchableOpacity style={styles.tabItem}
-        //  onPress={() => navigation.push('Home')}
-         >
-          <FontAwesome name="home" size={30} color={Colors.PRIMARY} />
-          <Text style={styles.tabLabel}>Trang chủ</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}
-        onPress={() => router.push('auth/screens/LibraryScreen')}
-        >
-          <Ionicons name="library" size={30} color={Colors.PRIMARY} />
-          <Text style={styles.tabLabel}>Thư viện</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}
-        onPress={() => router.push('auth/screens/FriendScreen')}
-        >
-         <Ionicons name="person-add" size={30} color={Colors.PRIMARY} />
-         <Text style={styles.tabLabel}>Tìm bạn</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}
-        onPress={() => router.push('auth/screens/ProfileScreen')}
-        >
-          <FontAwesome6 name="person" size={30} color={Colors.PRIMARY} />
-          <Text style={styles.tabLabel}>Hồ sơ</Text>
-        </TouchableOpacity>
-      </View> */}
     </View>
   );
 };
@@ -77,5 +58,11 @@ const styles = StyleSheet.create({
       color: Colors.PRIMARY,
       marginTop: 5, // Khoảng cách giữa biểu tượng và chữ
     },
+    iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 24, // Chiều cao cố định bằng kích thước icon
+    marginBottom: 4, // Khoảng cách giữa icon và text
+  },
 });
 export default TabBar;

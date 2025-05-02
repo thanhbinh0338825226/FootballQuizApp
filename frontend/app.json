@@ -38,6 +38,12 @@
         {
           "photosPermission": "Ứng dụng cần quyền truy cập ảnh để chọn ảnh đại diện."
         }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Ứng dụng cần quyền để phát âm thanh"
+        }
       ]
     ],
     "experiments": {

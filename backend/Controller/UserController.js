@@ -233,9 +233,52 @@ const getUserById = async (req, res) => {
     }
 };
 
-
-
-
+const getMusicStatus = async (req, res) => {
+    try {
+    //   const { userId } = req.body; // Lấy userId từ body request
+    const { userId } = req.query;
+      // Tìm người dùng theo ID
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(400).json({ error: "User not found" });
+      }
   
+      // Trả về trạng thái nhạc
+      return res.status(200).json({ musicEnabled: user.musicEnabled });
+  
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
 
-module.exports = { registerUser, deleteUser, loginUser,  getUserById};
+  const updateMusicStatus = async (req, res) => {
+    try {
+      const { userId, musicEnabled } = req.body; // Lấy userId và trạng thái nhạc từ body request
+  
+      // Kiểm tra xem musicEnabled có phải là boolean không
+      if (typeof musicEnabled !== 'boolean') {
+        return res.status(400).json({ error: "musicEnabled phải là kiểu boolean" });
+      }
+  
+      // Tìm người dùng theo ID và cập nhật trạng thái nhạc
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: { musicEnabled } },
+        { new: true } // Trả về document mới sau khi cập nhật
+      );
+  
+      if (!user) {
+        return res.status(400).json({ error: "User not found" });
+      }
+  
+      return res.status(200).json({
+        message: "Trạng thái nhạc đã được cập nhật!",
+        musicEnabled: user.musicEnabled,
+      });
+  
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  };
+  
+module.exports = { registerUser, deleteUser, loginUser,  getUserById, getMusicStatus, updateMusicStatus };

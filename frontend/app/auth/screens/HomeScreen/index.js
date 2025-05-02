@@ -7,6 +7,8 @@ import axios from 'axios';
 import { API_URL } from '../../../../config';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import TabBar from '../TabBar';
+import { playMusic, stopMusic } from '../../utils/AudioController';
+
 const { width } = Dimensions.get("window");
   const images = [
     { id: "1", source: require("../../../../assets/images/homescreen.jpg") },
@@ -22,6 +24,10 @@ export default function HomeScreen() {
 
   const [difficulty, setDifficulty] = useState('easy'); // Mặc định là 'easy'
   const [leaderboardData, setLeaderboardData] = useState([]);
+
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [userId, setUserId] = useState(null);
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -105,6 +111,7 @@ export default function HomeScreen() {
           const nameBeforeAt = email.split('@')[0];
           setUsername(nameBeforeAt);
           const userId = decoded.userId; 
+          setUserId(userId);
           const response = await axios.get(`${API_URL}/User/getUserById/${userId}`, {
             headers: {
               Authorization: `Bearer ${token}`,  // Nếu cần xác thực Bearer Token
@@ -145,6 +152,36 @@ export default function HomeScreen() {
     }
   };
 
+
+  useEffect(() => {
+    if (userId) {
+      fetchMusicStatus(); // Gọi API nhạc khi đã có userId
+    }else {
+      console.log('Không có userId'); // Nếu không có userId
+    }
+  }, [userId]);
+
+  const fetchMusicStatus = async () => {
+    try {
+      const res = await fetch(`${API_URL}/User/get/music-status?userId=${userId}`, {
+        method: 'GET',  
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await res.json();
+      setMusicEnabled(data.musicEnabled);
+  
+      if (data.musicEnabled) {
+        playMusic();
+      } else {
+        stopMusic();
+      }
+    } catch (err) {
+      console.error('Lỗi lấy trạng thái nhạc:', err);
+    }
+  };
+  
+
+  
   return (
     <View style={styles.containerWithTabs}>
     <ScrollView style={styles.container}>

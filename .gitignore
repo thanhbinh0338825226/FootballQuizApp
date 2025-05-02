@@ -36,3 +36,12 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Bỏ file .env trong backend
+/backend/.env
+
+# Bỏ file config.js trong frontend
+/frontend/config.js
+
+# Bỏ folder assets trong frontend
+/frontend/assets/

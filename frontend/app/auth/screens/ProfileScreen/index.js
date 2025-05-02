@@ -6,6 +6,8 @@ import { Colors } from '../../../../constants/Colors';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { API_URL } from '../../../../config';
+import { playMusic, stopMusic } from '../../utils/AudioController';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,6 +16,8 @@ export default function ProfileScreen() {
     const [username, setUsername] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const router = useRouter();
+    const [musicEnabled, setMusicEnabled] = useState(true);
+    const [userId, setUserId] = useState(null);
     const alertLogout = () => {
       Alert.alert(
           "Đăng xuất",
@@ -27,6 +31,7 @@ export default function ProfileScreen() {
                   text: "Có",
                   onPress: async () => {
                       await SecureStore.deleteItemAsync('accessToken');
+                      stopMusic();
                       router.push('/auth/signin-signout');
                       
                   }
@@ -52,7 +57,9 @@ export default function ProfileScreen() {
                     const nameBeforeAt = email.split('@')[0];
                     setUsername(nameBeforeAt);
                     
-                    const userId = decoded.userId; 
+                    const userId = decoded.userId;       
+                    setUserId(userId);
+
                     const response = await axios.get(`${API_URL}/User/getUserById/${userId}`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -71,6 +78,26 @@ export default function ProfileScreen() {
         getUserInfo();
     }, []);
 
+
+    const toggleMusic = async () => {
+        
+        const newStatus = !musicEnabled;
+        setMusicEnabled(newStatus);
+
+        // Gửi cập nhật lên server
+        await fetch(`${API_URL}/User/update/music-status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, musicEnabled: newStatus }),
+        });
+
+        // Bật hoặc tắt nhạc
+        if (newStatus) {
+            playMusic();
+        } else {
+            stopMusic();
+        }
+    };
     // Player data with user info
     const player = {
         name: username || "Your Name",
@@ -91,7 +118,7 @@ export default function ProfileScreen() {
 
     return (
         <View style={styles.containerWithTabs}>
-            <ScrollView 
+            <View 
                 style={styles.container}
                 contentContainerStyle={styles.scrollContent}
             >
@@ -160,8 +187,28 @@ export default function ProfileScreen() {
                             </View>
                         </View>
                     </View>
+                    <View style={styles.musicButtonContainer}>
+                    <TouchableOpacity 
+                        onPress={toggleMusic}
+                        style={[
+                            styles.musicButton,
+                            { backgroundColor: musicEnabled ? Colors.primaryDark : Colors.secondary }
+                        ]}
+                    >
+                        <View style={styles.musicButtonContent}>
+                            <Ionicons 
+                                name={musicEnabled ? "volume-high" : "volume-mute"} 
+                                size={24} 
+                                color={Colors.gold} 
+                            />
+                            <Text style={styles.musicButtonText}>
+                                {musicEnabled ? 'ÂM THANH: BẬT' : 'ÂM THANH: TẮT'}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
+                    </View>
                 </View>
-            </ScrollView>
+            </View>
             <View style={{ padding: 20, alignItems: 'center' }}>
       <TouchableOpacity onPress={alertLogout}>
         <Text
@@ -318,6 +365,45 @@ const styles = StyleSheet.create({
     statLabel: {
         fontSize: 16,
         color: 'white',
+    },
+    musicButtonContainer: {
+        width: '100%',
+        paddingHorizontal: 20, // Căn đều 2 bên
+        paddingTop: 10,       // Giảm khoảng cách phía trên
+        paddingBottom: 25,    // Tăng khoảng cách phía dưới
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: -10,       // Kéo lên trên 1 chút
+        marginBottom: 10,     // Khoảng cách với phần tiếp theo
+    },
+    musicButton: {
+        borderRadius: 30,     // Bo tròn hơn
+        paddingVertical: 14,   // Cao hơn
+        paddingHorizontal: 30, // Rộng hơn
+        borderWidth: 2,
+        borderColor: Colors.gold,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 }, // Đổ bóng đậm hơn
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        elevation: 7,
+        // Thêm transition cho mượt mà
+        transitionDuration: '200ms',
+    },
+    musicButtonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    musicButtonText: {
+        color: Colors.gold,
+        fontSize: 16,
+        fontWeight: '800',     // Đậm hơn
+        textTransform: 'uppercase',
+        letterSpacing: 1,      // Giãn chữ
+        textShadowColor: 'rgba(0,0,0,0.3)', // Hiệu ứng chữ nổi
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 2,
     },
 });
 

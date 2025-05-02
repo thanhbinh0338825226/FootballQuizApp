@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';  // Import LinearGradient
 import { API_URL } from '../../../../config';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { setMusicVolume } from '../../utils/AudioController';
 
 export default function EasyGame() {
   const navigation = useNavigation();
@@ -27,6 +28,16 @@ export default function EasyGame() {
 
   useEffect(() => {
     fetchQuestion(); // ← gọi API ban đầu khi vào màn hình
+  }, []);
+
+  useEffect(() => {
+    // Khi người dùng vào màn hình trò chơi, giảm âm lượng nhạc xuống 20%
+    setMusicVolume(0.2);
+  
+    return () => {
+      // Khi người dùng rời màn hình trò chơi, phục hồi âm lượng về 100%
+      setMusicVolume(1.0);
+    };
   }, []);
 
   useEffect(() => {

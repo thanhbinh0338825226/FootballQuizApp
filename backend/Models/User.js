@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    musicEnabled: {
+        type: Boolean,
+        default: true // Mặc định là bật nhạc
+    },
     otp: { type: String },   // Mã OTP
     otpExpiresAt: { type: Date }, // Thời gian hết hạn OTP
     otpAttempts: { type: Number, default: 0 }, // Số lần nhập sai OTP

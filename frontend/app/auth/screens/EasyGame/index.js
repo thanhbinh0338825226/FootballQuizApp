@@ -8,6 +8,9 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { setMusicVolume } from '../../utils/AudioController';
 
+import * as Speech from 'expo-speech';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
 export default function EasyGame() {
   const navigation = useNavigation();
   const [question, setQuestion] = useState(null);
@@ -19,8 +22,10 @@ export default function EasyGame() {
   const [answered, setAnswered] = useState(false); // Để kiểm tra khi người dùng đã trả lời câu hỏi
   const scoreRef = useRef(score);
   const timeoutRef = useRef(null);
-
-
+  const [usedCallFriendHelp, setUsedCallFriendHelp] = useState(false);
+  const [reducedAnswers, setReducedAnswers] = useState(null);
+  const [usedFiftyFiftyHelp, setUsedFiftyFiftyHelp] = useState(false); // đã sử dụng 50 50 ở câu hỏi hiện tại chưa
+  const [usedFiftyFiftyHelpGlobal, setUsedFiftyFiftyHelpGlobal] = useState(false); // 	Đã sử dụng 50/50 chưa (toàn game, chỉ dùng 1 lần)
   // Ẩn header
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -61,6 +66,85 @@ export default function EasyGame() {
   
     return () => clearTimeout(timeoutRef.current);
   }, []);
+
+  const handleCallFriendHelp = async () => {
+    if (usedCallFriendHelp) {
+      Alert.alert("⚠️ Đã dùng", "Bạn chỉ được sử dụng quyền trợ giúp này một lần.");
+      return;
+    }
+  
+    try {
+      const allAnswers = question.options.map(opt => opt.name);  
+      const res = await fetch(`${API_URL}/api/call-friend-help`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: question.questionId,
+          allAnswers: allAnswers,
+        }),
+      });
+  
+      const result = await res.json();
+      const reply = result.reply || "Không có phản hồi từ bạn bè.";
+  
+      // Tắt nhạc trước khi đọc giọng nói
+      setMusicVolume(0.0);
+  
+      // Đọc bằng giọng nói
+      Speech.speak(reply, {
+        language: 'vi-VN',
+        rate: 1.0,
+        onDone: () => {
+          // Bật lại nhạc sau khi đọc xong
+          setMusicVolume(0.2);
+  
+          // Hiển thị alert sau khi đọc xong
+          Alert.alert("Câu trả lời từ người thân là:", reply);
+        }
+      });
+  
+      setUsedCallFriendHelp(true);
+    } catch (error) {
+      console.error("Lỗi khi gọi trợ giúp gọi điện:", error);
+      Alert.alert("Lỗi", "Không thể gọi trợ giúp.");
+    }
+  };
+
+  const handleFiftyFiftyHelp = async () => {
+    if (usedFiftyFiftyHelp || usedFiftyFiftyHelpGlobal ) {
+      Alert.alert("⚠️ Đã dùng", "Bạn chỉ được dùng 50/50 một lần.");
+      return;
+    }
+  
+    try {
+      const allAnswers = question.options.map(opt => opt.name);
+  
+      const res = await fetch(`${API_URL}/api/fifty-fifty-help`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: question.questionId,
+          allAnswers: allAnswers,
+        }),
+      });
+  
+      const result = await res.json();
+      if (!result.answers || result.answers.length !== 2) {
+        throw new Error("Kết quả không hợp lệ từ API.");
+      }
+  
+      setReducedAnswers(result.answers);  // Cập nhật đáp án đã rút gọn
+      setUsedFiftyFiftyHelp(true); // Đánh dấu đã dùng 50/50
+      setUsedFiftyFiftyHelpGlobal(true);
+    } catch (err) {
+      console.error("Lỗi khi gọi trợ giúp 50/50:", err);
+      Alert.alert("Lỗi", "Không thể sử dụng trợ giúp 50/50.");
+    }
+  };
   
   
   
@@ -180,6 +264,8 @@ export default function EasyGame() {
       // Gọi fetchQuestion để lấy câu hỏi mới
       await fetchQuestion(); // Nếu fetchQuestion đã được sửa đúng cách, nó sẽ xử lý việc cập nhật câu hỏi
       setAnswered(false);
+      setReducedAnswers(null); // ✅ reset lại 50/50 mỗi câu
+      setUsedFiftyFiftyHelp(false);
       // Không cần phải gọi thêm fetch ở đây nữa
     } catch (err) {
       console.error('Lỗi khi tải câu hỏi mới:', err);
@@ -200,8 +286,22 @@ export default function EasyGame() {
     >
       {question ? (
         <>
-          <Text style={styles.title}>Câu hỏi:</Text>
+          <View style={{ flexDirection: 'row', alignItems: "center", marginBottom: 10, justifyContent: "space-between" }}>
+            <TouchableOpacity
+              style={styles.inlineHelpButton}
+              onPress={handleCallFriendHelp}
+            >
+              <MaterialIcons name="contact-phone" size={24} color="#fff" />
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.inlineHelpButton}
+              onPress={handleFiftyFiftyHelp}
+            >
+              <MaterialIcons name="filter-2" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.title}>Câu hỏi</Text>
           <View style={styles.timerContainer}>
             <FontAwesome name="clock-o" size={24} color="#ff6347" />
             <Text style={styles.timerText}>{formatTime(timer)}</Text>
@@ -218,7 +318,7 @@ export default function EasyGame() {
             {question.type || 'Ai là cầu thủ trong ảnh?'}
           </Text>
 
-          {question.options?.map((opt, index) => (
+          {/* {question.options?.map((opt, index) => (
             <TouchableOpacity
               key={index}
               style={styles.optionButton}
@@ -227,7 +327,28 @@ export default function EasyGame() {
             >
               <Text style={styles.optionText}>{opt.name}</Text>
             </TouchableOpacity>
-          ))}
+          ))} */}
+
+            {question.options?.map((opt, index) => {
+              const isReduced = usedFiftyFiftyHelp && !reducedAnswers?.includes(opt.name);
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.optionButton,
+                    isReduced && { backgroundColor: '#d3d3d3' }, // làm mờ nền nếu bị loại
+                  ]}
+                  onPress={() => handleAnswer(opt.name)}
+                  disabled={answered || isReduced}
+                >
+                  <Text style={[styles.optionText, isReduced && { color: '#d3d3d3' }]}>
+                    {isReduced ? '' : opt.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+
 
           <TouchableOpacity
             style={styles.nextButton}
@@ -325,6 +446,14 @@ const styles = StyleSheet.create({
   color: '#333',
   marginBottom: 10,
 },
+inlineHelpButton: {
+  backgroundColor: '#1E90FF',
+  padding: 10,
+  borderRadius: 30,
+  marginRight: 10,
+},
+
+
 });
 
 

@@ -1,5 +1,6 @@
 const QuizResult = require('../Models/QuizResults');
 const User = require('../Models/User');
+const mongoose = require("mongoose");
 
 // Controller để lưu kết quả quiz
 const createQuizResult = async (req, res) => {
@@ -49,6 +50,8 @@ const createQuizResult = async (req, res) => {
   }
 };
 
+
+
 const getLeaderboard = async (req, res) => {
   try {
     const { difficulty } = req.query;
@@ -59,10 +62,20 @@ const getLeaderboard = async (req, res) => {
       return res.status(400).json({ message: "Difficulty không hợp lệ! Chỉ cho phép: easy, medium, hard." });
     }
 
+
     // Truy vấn lấy danh sách điểm cao nhất và thời gian nhanh nhất cho mỗi người chơi
     const leaderboard = await QuizResult.aggregate([
       // Lọc theo difficulty
-      { $match: { difficulty: difficulty.toLowerCase() } },
+      { $match: { 
+        difficulty: difficulty.toLowerCase(),
+        time: { $ne: null, $type: "number" }, // đảm bảo thời gian ko null
+        userId: {
+      $nin: [
+        new mongoose.Types.ObjectId("67f0b76bb913d24665e7dba1"),
+        new mongoose.Types.ObjectId("6824548b6173990eea8e467b")
+      ]
+    }
+      } },
 
       // Nhóm theo userId, lấy điểm số cao nhất và thời gian nhanh nhất
       { 

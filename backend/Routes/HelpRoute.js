@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { callFriendHelp, generateFriendReplyTemplates, fiftyFiftyHelp } = require("../Controller/HelpController");
+const { callFriendHelp, generateFriendReplyTemplates, fiftyFiftyHelp, audienceHelp } = require("../Controller/HelpController");
 
 // Route để lấy các mẫu câu trả lời cho các mood
 router.get("/friend-reply-templates", generateFriendReplyTemplates);
@@ -9,5 +9,8 @@ router.get("/friend-reply-templates", generateFriendReplyTemplates);
 router.post("/call-friend-help",callFriendHelp);
 
 router.post("/fifty-fifty-help", fiftyFiftyHelp); 
+
+router.post("/audience-help", audienceHelp);
+
 
 module.exports = router;

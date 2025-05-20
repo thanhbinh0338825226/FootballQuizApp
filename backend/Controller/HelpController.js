@@ -128,7 +128,76 @@ const fiftyFiftyHelp = async (req, res) => {
     }
 };
 
+const audienceHelp = async (req, res) => {
+    try {
+        const { questionId, allAnswers } = req.body;
+
+        if (!questionId || !Array.isArray(allAnswers) || allAnswers.length !== 4) {
+            return res.status(400).json({ error: "Thiếu hoặc sai định dạng dữ liệu đầu vào" });
+        }
+
+        // Tìm câu hỏi
+        const question = await Question.findById(questionId);
+        if (!question) {
+            return res.status(404).json({ error: "Không tìm thấy câu hỏi" });
+        }
+
+        // Tìm cầu thủ đúng
+        const correctPlayer = await Player.findById(question.PlayerId);
+        if (!correctPlayer) {
+            return res.status(404).json({ error: "Không tìm thấy cầu thủ đúng" });
+        }
+
+        const correctAnswer = correctPlayer.Name;
+
+        // Tạo phần trăm ngẫu nhiên với bias đúng
+        const generatePercentages = (correctAnswer, allAnswers) => {
+            const result = {};
+            const indices = [0, 1, 2, 3];
+            const correctIndex = allAnswers.indexOf(correctAnswer);
+
+            if (correctIndex === -1) {
+                throw new Error("Đáp án đúng không nằm trong danh sách allAnswers");
+            }
+
+            // Đảm bảo đáp án đúng có % cao hơn
+            let correctPercent = Math.floor(Math.random() * 21) + 50; // Từ 50% đến 70%
+            let remaining = 100 - correctPercent;
+
+            // Tạo % ngẫu nhiên cho 3 đáp án sai
+            const wrongIndices = indices.filter(i => i !== correctIndex);
+            let wrongPercents = [];
+
+            for (let i = 0; i < 2; i++) {
+                const percent = Math.floor(Math.random() * (remaining - (2 - i))) + 1;
+                wrongPercents.push(percent);
+                remaining -= percent;
+            }
+            wrongPercents.push(remaining); // cái còn lại
+
+            // Shuffle wrongPercents để random hơn
+            wrongPercents = wrongPercents.sort(() => Math.random() - 0.5);
+
+            // Gán vào kết quả
+            result[allAnswers[correctIndex]] = correctPercent;
+            for (let i = 0; i < wrongIndices.length; i++) {
+                result[allAnswers[wrongIndices[i]]] = wrongPercents[i];
+            }
+
+            return result;
+        };
+
+        const percentages = generatePercentages(correctAnswer, allAnswers);
+
+        return res.status(200).json({ percentages });
+
+    } catch (error) {
+        console.error("Lỗi khi xử lý trợ giúp khán giả:", error.message);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
 
 module.exports = {
-    callFriendHelp, generateFriendReplyTemplates, fiftyFiftyHelp
+    callFriendHelp, generateFriendReplyTemplates, fiftyFiftyHelp, audienceHelp
 };
